@@ -41,11 +41,15 @@ const login = async (req, res, next) => {
       return res.status(400).json({ msg: "Incorrect Password" });
     }
 
-    const token = jwt.sign({ user: user._id }, SECERT, { expiresIn: "1hr" });
+    const token = jwt.sign({ user: user._id }, SECERT, { expiresIn: "35s" });
+
+    if (req.cookies[`${user._id}`]) {
+      req.cookies[`${user._id}`] = "";
+    }
 
     res.cookie(String(user._id), token, {
       path: "/",
-      expires: new Date(Date.now() + 2000 * 30),
+      expires: new Date(Date.now() + 1000 * 30),
       httpOnly: true,
       sameSite: "lax",
     });
@@ -97,7 +101,39 @@ const getUser = async (req, res, next) => {
   }
 };
 
+const refreshToken = async (req, res, next) => {
+  const cookies = req.headers.cookie;
+  const prevtoken = cookies.split("=")[1];
+
+  const SECERT = process.env.JWT_KEY_SECERT;
+  if (!prevtoken) {
+    return res.status(400).json({ msg: "Couldn't find any token" });
+  }
+  jwt.verify(String(prevtoken), SECERT, (err, data) => {
+    if (err) {
+      console.log(err);
+      return res.status(403).json({ msg: "Authentication failed" });
+    }
+
+    res.clearCookie(`${data.user}`);
+    req.cookies[`${data.user}`] = "";
+
+    const token = jwt.sign({ user: data.user }, SECERT, {
+      expiresIn: "35s",
+    });
+    res.cookie(String(data.user), token, {
+      path: "/",
+      expires: new Date(Date.now() + 1000 * 30),
+      httpOnly: true,
+      sameSite: "lax",
+    });
+    req.id = data.user;
+    next();
+  });
+};
+
 exports.signup = signup;
 exports.login = login;
 exports.verifyToken = verifyToken;
 exports.getUser = getUser;
+exports.refreshToken = refreshToken;
