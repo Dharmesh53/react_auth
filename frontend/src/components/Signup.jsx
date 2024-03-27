@@ -1,8 +1,11 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { login } from "../store/authSlice";
 
 const Signup = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [data, setData] = useState({
     name: "",
@@ -36,7 +39,8 @@ const Signup = () => {
     e.preventDefault();
     const user = await sendReq();
     if (user) {
-      navigate("/login");
+      dispatch(login());
+      navigate("/dashboard");
     }
   };
   return (

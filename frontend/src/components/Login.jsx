@@ -1,8 +1,11 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { login } from "../store/authSlice";
 
 const Login = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [data, setData] = useState({
     email: "",
@@ -15,6 +18,7 @@ const Login = () => {
       [e.target.name]: e.target.value,
     }));
   };
+
   const sendReq = async () => {
     try {
       const userData = {
@@ -28,13 +32,16 @@ const Login = () => {
       console.log(error);
     }
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const user = await sendReq();
     if (user) {
+      dispatch(login());
       navigate("/dashboard");
     }
   };
+
   return (
     <div className="mt-7">
       <div className="w-1/3 m-auto ">
