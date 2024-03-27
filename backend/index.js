@@ -1,24 +1,19 @@
 require("dotenv").config();
 const express = require("express");
-const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
-const userRouter = require("./routes/user_routes");
+
+const connectToDB = require("./utils/connectToDB");
+const userRoutes = require("./routes/userRoutes");
 
 const app = express();
 app.use(cors({ credentials: true, origin: "http://localhost:5173" }));
-app.use(express.json());
 app.use(cookieParser());
-app.use("/api", userRouter);
+app.use(express.json()); //order matter in middlewares
+app.use("/api", userRoutes);
 
-mongoose
-  .connect(
-    "mongodb+srv://dhiru7321r:1102@cluster0.3tjtv3v.mongodb.net/react_auth?retryWrites=true&w=majority&appName=Cluster0"
-  )
-  .then(() => {
-    app.listen(5000);
-    console.log("Connected to database && Listening to port 5000");
-  })
-  .catch((e) => {
-    console.log(e);
+connectToDB().then(() => {
+  app.listen(5000, () => {
+    console.log("Listening to 5000");
   });
+});
